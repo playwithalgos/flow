@@ -153,6 +153,7 @@ let G = new Graph(); //generateGraph
 function load() {
    buttonReset.onclick = () => reset(G);
    buttonSolution.onclick = () => maxflow(G);
+   buttonHelp.onclick = () => alert("Yellow node: the source of cookies. Black node: the target. You have to transport the maximum number of cookies from the source to the target. \n Left click: increase the flow in an edge by 1\nRight click: decrease the flow in an edge by 1")
 
    const style = new ConveyorBeltStyle();
    //G = simpleExampleGraph();
