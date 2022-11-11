@@ -204,6 +204,7 @@ canvas.onmousedown = (evt) => {
 
          }
          updateState();
+         break;
       }
    }
    evt.preventDefault();
