@@ -48,7 +48,7 @@ function generateGraph() {
             if (G.node(j).x < G.node(i).x)
                [i, j] = [jj, i]
          }
-         if (d(G.node(j), G.node(i)) < THESHOLDEDGES*1.5)
+         if (d(G.node(j), G.node(i)) < THESHOLDEDGES * 1.5)
             G.addEdge(i, j, { flow: 0, capacity: 1 + Math.floor(Math.random() * 10) });
 
       }
@@ -153,7 +153,8 @@ let G = new Graph(); //generateGraph
 function load() {
    buttonReset.onclick = () => reset(G);
    buttonSolution.onclick = () => maxflow(G);
-   buttonHelp.onclick = () => alert("Yellow node: the source of cookies. Black node: the target. You have to transport the maximum number of cookies from the source to the target. \n Left click: increase the flow in an edge by 1\nRight click: decrease the flow in an edge by 1")
+   buttonHelp.onclick = () => alert("Yellow node: the source of cookies. Black node: the target. You have to transport the maximum number of cookies from the source to the target. \n" +
+      "Click at the end of an edge: increase the flow in an edge by 1\nClick at the beginning of an edge: decrease the flow in an edge by 1")
 
    const style = new ConveyorBeltStyle();
    //G = simpleExampleGraph();
@@ -191,7 +192,7 @@ canvas.onmousedown = (evt) => {
    for (const edge of G.edges) {
       if (Math.abs(d(edge.A, p) + d(p, edge.B) - d(edge.A, edge.B)) < 10) {
          edge.clicked = 10;
-         if (evt.button == 0) {
+         if (d(edge.B, p) < d(p, edge.A)) {
             if (edge.flow < edge.capacity)
                edge.flow++;
 
@@ -280,7 +281,5 @@ function updateState() {
 
 
 canvas.oncontextmenu = function () {
-
-   // Code to handle event
    return false;
 }
