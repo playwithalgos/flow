@@ -8,12 +8,24 @@ window.t = 0;
 const WIDTH = 800;
 const HEIGHT = 600;
 
+const ISOURCE = 0;
+const ITARGET = 1;
 
+
+
+/**
+ * 
+ * @returns a very nice graph network that has nice property:
+ *  it has a max-flow > 0
+ *  the solution is not so trivial (generally not a unique path with some flow)
+ */
 function generateGraph() {
    const THESHOLDEDGES = 100;
 
    const G = new Graph();
-   G.addNode({ x: 100, y: 200 });
+   G.addNode({ x: 100, y: 200 }); //source
+   G.addNode({ x: WIDTH - 50, y: HEIGHT - 50 }); //target
+
    function getFreePosition() {
       for (let i = 0; i < 10; i++) {
          let ok = true;
@@ -38,7 +50,7 @@ function generateGraph() {
          G.addNode({ x: pos.x, y: pos.y });
    }
 
-   G.addNode({ x: WIDTH - 50, y: HEIGHT - 50 });
+   
 
    for (let ii = 0; ii < G.nbNodes; ii++)
       for (let jj = ii + 1; jj < G.nbNodes; jj++) {
@@ -54,10 +66,11 @@ function generateGraph() {
       }
 
    maxflow(G);
-   if (flow(G) == 0)
+
+   if (flow(G) == 0 || isFlowSinglePath(G))
       return generateGraph();
    else {
-      reset(G);
+      resetFlowToZero(G);
       return G;
 
    }
@@ -65,19 +78,31 @@ function generateGraph() {
 
 
 
+function isFlowSinglePath(G) {
+   let s = 0;
 
+   while (s != ITARGET) {
+      const edgesWithFlow = G.edgesFrom(s).filter((e) => e.flow > 0);
+      if (edgesWithFlow.length > 1)
+         return false;
+      else
+         s = edgesWithFlow[0].end;
+   }
+   return true;
+}
 
 function maxflow(G) {
    for (const edge of G.edges)
       edge.flow = 0;
 
-   function getAugmentingPath(G) {
+   //with DFS
+   /**function getAugmentingPath(G) {
       let v = new Array(G.nbNodes).fill(false);
 
       function explore(G, is) {
          v[is] = true;
 
-         if (is == G.nbNodes - 1)
+         if (is == ITARGET)
             return [{ node: is, value: Infinity }];
 
          for (const edge of G.edges) {
@@ -99,18 +124,68 @@ function maxflow(G) {
       }
       return explore(G, 0);
 
+   }*/
+
+   /**
+    * 
+    * @param {*} G 
+    * @returns an augmenting path. It performs a BFS in the residual graph
+    */
+   function getAugmentingPath(G) {
+      let v = new Array(G.nbNodes).fill(false);
+
+      const queue = [0];
+      const pred = {};
+
+      while (queue.length > 0) {
+         let is = queue.pop();
+
+         if (is == ITARGET)
+            return constructPath(pred, is);
+
+         for (const edge of G.edges) {
+            if (edge.start == is && !v[edge.end] && edge.flow < edge.capacity) {
+               pred[edge.end] = { node: is, value: edge.capacity - edge.flow };
+               v[edge.end] = true;
+               queue.unshift(edge.end);
+            }
+            else if (!v[edge.start] && edge.end == is && edge.flow > 0) {
+               pred[edge.start] = { node: is, value: edge.flow };
+               v[edge.start] = true;
+               queue.unshift(edge.start);
+            }
+         }
+      }
+
+
+      function constructPath(pred, is) {
+         if (is == 0)
+            return [];
+         else {
+            return constructPath(pred, pred[is].node).concat([pred[is]]);
+         }
+
+      }
+      return false;
+
    }
 
-
+   /**
+    * 
+    * @param {*} pi
+    * @description improves the current flow with the path pi 
+    */
    function improve(pi) {
       const cmin = Math.min(...pi.map((seq) => seq.value));
-      for (let i = 0; i < pi.length - 1; i++) {
-         const edge1 = G.edge(pi[i].node, pi[i + 1].node);
+      for (let i = 0; i < pi.length; i++) {
+         let u = pi[i].node;
+         let v = (i == pi.length - 1) ? ITARGET : pi[i + 1].node;
+         const edge1 = G.edge(u, v);
 
          if (edge1)
             edge1.flow += cmin;
 
-         const edge2 = G.edge(pi[i + 1].node, pi[i].node);
+         const edge2 = G.edge(v, u);
 
          if (edge2)
             edge2.flow -= cmin;
@@ -127,6 +202,10 @@ function maxflow(G) {
 }
 
 
+/**
+ * 
+ * @returns a simple example of network
+ */
 function simpleExampleGraph() {
    const G = new Graph();
    G.addNode({ x: 100, y: 200 });
@@ -143,15 +222,19 @@ function simpleExampleGraph() {
 }
 
 
-
-function reset(G) {
+/**
+ * 
+ * @param {*} G
+ * @returns reset the flow of G to 0 in every edge 
+ */
+function resetFlowToZero(G) {
    for (const edge of G.edges)
       edge.flow = 0;
 }
 let G = new Graph(); //generateGraph
 
 function load() {
-   buttonReset.onclick = () => reset(G);
+   buttonReset.onclick = () => resetFlowToZero(G);
    buttonSolution.onclick = () => maxflow(G);
    buttonHelp.onclick = () => alert("Yellow node: the source of cookies. Black node: the target. You have to transport the maximum number of cookies from the source to the target. \n" +
       "Click at the end of an edge: increase the flow in an edge by 1\nClick at the beginning of an edge: decrease the flow in an edge by 1")
@@ -159,7 +242,8 @@ function load() {
    const style = new ConveyorBeltStyle();
    //G = simpleExampleGraph();
    G = generateGraph();
-
+   //maxflow(G)
+   
    const draw = () => {
       const context = canvas.getContext("2d");
       G.draw(context, style);
@@ -169,19 +253,20 @@ function load() {
             context.fillText("bravo!", 300, 32);
 
       }
-
-
-
       requestAnimationFrame(draw);
       t++;
-
    }
-
    draw();
-
-
 }
 
+
+
+/**
+ * 
+ * @param {*} a 
+ * @param {*} b 
+ * @returns the euclidean distance between the two points a and b (could be nodes)
+ */
 function d(a, b) {
    return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
@@ -192,16 +277,16 @@ canvas.onmousedown = (evt) => {
    for (const edge of G.edges) {
       if (Math.abs(d(edge.A, p) + d(p, edge.B) - d(edge.A, edge.B)) < 10) {
          edge.clicked = 10;
+
+         //beginning of the edge = decrease the flow by 1
          if (d(edge.B, p) < d(p, edge.A)) {
             if (edge.flow < edge.capacity)
                edge.flow++;
-
          }
+         //more to the end of the edge = increease the flow by 1
          else {
-
             if (edge.flow > 0)
                edge.flow--;
-
          }
          updateState();
          break;
@@ -211,14 +296,33 @@ canvas.onmousedown = (evt) => {
 }
 
 
+/**
+ * 
+ * @param {*} G 
+ * @param {*} inode 
+ * @returns the inflow in the node number inode in G
+ */
 function inflow(G, inode) {
    return G.edges.filter((e) => e.end == inode).map((e) => e.flow).reduce((a, b) => a + b, 0);
 }
 
+
+/**
+ * 
+ * @param {*} G 
+ * @param {*} inode 
+ * @returns the outflow in the node number inode in G
+ */
 function outflow(G, inode) {
    return G.edges.filter((e) => e.start == inode).map((e) => e.flow).reduce((a, b) => a + b, 0);
 }
 
+
+/**
+ * 
+ * @param {*} G 
+ * @returns the current flow value in G (i.e. the inflow of the source)
+ */
 function flow(G) {
    return outflow(G, 0);
 }
@@ -233,6 +337,9 @@ const notesBad = ["C2", "D2", "Eb2", "F2", "G2"];
 let iNote = 0;
 
 
+/**
+ * makes some music sometimes
+ */
 function sound() {
    function pick(A) {
       iNote++;
@@ -253,15 +360,17 @@ function sound() {
       setTimeout(sound, f > 0 ? speed / f : speed);
 }
 
+
+/**
+ * @description checks whether the flow is correct.
+ */
 function updateState() {
-
-
    G.isProblematic = false;
    for (const inode in G.nodes) {
       console.log(inflow(G, inode))
       console.log(outflow(G, inode))
 
-      if (inode != 0 && inode != G.nodes.length - 1 && inflow(G, inode) != outflow(G, inode)) {
+      if (inode != ISOURCE && inode != ITARGET && inflow(G, inode) != outflow(G, inode)) {
          G.nodes[inode].isProblematic = true;
          G.isProblematic = true;
       }
@@ -279,8 +388,3 @@ function updateState() {
 
 }
 
-
-
-canvas.oncontextmenu = function () {
-   return false;
-}

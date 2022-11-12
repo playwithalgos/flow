@@ -1,16 +1,23 @@
 const beltColor = "black";
 const beltStrokeColor = `#8888AA`;
 const cookieColor = "#FFDD00";
+const sourceColor = cookieColor;
+const targetColor = "black";
 const SPEED = 200;
+
+const ITARGET = 1;
+
+/**
+ * @description this class displays a network graph with beautiful graphics :)
+ */
 export class ConveyorBeltStyle {
     drawNode(context, node, G) {
         context.beginPath();
-        context.fillStyle = node == G.nodes[0] ? cookieColor : node == G.nodes[G.nodes.length-1] ? "black" : beltStrokeColor;
+        context.fillStyle = node == G.nodes[0] ? sourceColor : node == G.nodes[ITARGET] ? targetColor : beltStrokeColor;
         context.strokeStyle = "black";
         context.lineWidth = 2;
         context.arc(node.x, node.y, 24, 0, 2 * Math.PI);
         context.fill();
-
 
         if (node.isProblematic) {
             context.moveTo(node.x - 8, node.y - 8);
@@ -18,9 +25,7 @@ export class ConveyorBeltStyle {
             context.moveTo(node.x + 8, node.y - 8);
             context.lineTo(node.x - 8, node.y + 8);
             context.stroke();
-
         }
-
     }
 
 

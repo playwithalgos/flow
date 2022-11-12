@@ -28,6 +28,10 @@ export class Graph {
                 return edge;
     }
 
+    edgesFrom(i) {
+        return this.successors[i];
+    }
+
     node(i) { return this.nodes[i] }
     get nbNodes() { return this.nodes.length };
 
