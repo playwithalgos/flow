@@ -50,7 +50,7 @@ function generateGraph() {
          G.addNode({ x: pos.x, y: pos.y });
    }
 
-   
+
 
    for (let ii = 0; ii < G.nbNodes; ii++)
       for (let jj = ii + 1; jj < G.nbNodes; jj++) {
@@ -243,7 +243,7 @@ function load() {
    //G = simpleExampleGraph();
    G = generateGraph();
    //maxflow(G)
-   
+
    const draw = () => {
       const context = canvas.getContext("2d");
       G.draw(context, style);
@@ -274,23 +274,32 @@ function d(a, b) {
 canvas.onmousedown = (evt) => {
    const p = { x: evt.layerX, y: evt.layerY };
 
-   for (const edge of G.edges) {
-      if (Math.abs(d(edge.A, p) + d(p, edge.B) - d(edge.A, edge.B)) < 10) {
-         edge.clicked = 10;
+   let bestEdge = undefined;
+   let bestScore = 10000;
 
-         //beginning of the edge = decrease the flow by 1
-         if (d(edge.B, p) < d(p, edge.A)) {
-            if (edge.flow < edge.capacity)
-               edge.flow++;
-         }
-         //more to the end of the edge = increease the flow by 1
-         else {
-            if (edge.flow > 0)
-               edge.flow--;
-         }
-         updateState();
-         break;
+   for (const edge of G.edges) {
+      const score = Math.abs(d(edge.A, p) + d(p, edge.B) - d(edge.A, edge.B));
+      if (score < 3 && score < bestScore) {
+         bestEdge = edge;
+         bestScore = score;
       }
+   }
+
+   if (bestEdge) {
+      bestEdge.clicked = 10;
+
+      //beginning of the edge = decrease the flow by 1
+      if (d(bestEdge.B, p) < d(p, bestEdge.A)) {
+         if (bestEdge.flow < bestEdge.capacity)
+            bestEdge.flow++;
+      }
+      //more to the end of the edge = increease the flow by 1
+      else {
+         if (bestEdge.flow > 0)
+            bestEdge.flow--;
+      }
+      updateState();
+
    }
    evt.preventDefault();
 }

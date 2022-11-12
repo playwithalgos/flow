@@ -4,6 +4,7 @@ const cookieColor = "#FFDD00";
 const sourceColor = cookieColor;
 const targetColor = "black";
 const SPEED = 200;
+const NODERADIUS = 20;
 
 const ITARGET = 1;
 
@@ -16,7 +17,7 @@ export class ConveyorBeltStyle {
         context.fillStyle = node == G.nodes[0] ? sourceColor : node == G.nodes[ITARGET] ? targetColor : beltStrokeColor;
         context.strokeStyle = "black";
         context.lineWidth = 2;
-        context.arc(node.x, node.y, 24, 0, 2 * Math.PI);
+        context.arc(node.x, node.y, NODERADIUS, 0, 2 * Math.PI);
         context.fill();
 
         if (node.isProblematic) {
@@ -39,7 +40,6 @@ export class ConveyorBeltStyle {
         context.lineTo(B.x, B.y);
         context.stroke();
 
-        context.lineCap = "butt";
         context.beginPath();
         context.strokeStyle = edge.clicked ? "white" : beltColor;
         context.lineWidth = lineWidth;
