@@ -234,8 +234,8 @@ function resetFlowToZero(G) {
 let G = new Graph(); //generateGraph
 
 function load() {
-   buttonReset.onclick = () => resetFlowToZero(G);
-   buttonSolution.onclick = () => maxflow(G);
+   buttonReset.onclick = () => {resetFlowToZero(G); updateState()}
+   buttonSolution.onclick = () => {maxflow(G);; updateState()}
    buttonHelp.onclick = () => alert("Yellow node: the source of cookies. Black node: the target. You have to transport the maximum number of cookies from the source to the target. \n" +
       "Click at the end of an edge: increase the flow in an edge by 1\nClick at the beginning of an edge: decrease the flow in an edge by 1")
 
@@ -340,7 +340,7 @@ const synth = new Tone.Synth().toDestination();
 sound();
 
 const notes = ["E3", "E3", "F3", "G3", "G3", "F3", "E3", "D3", "C3", "C3", "D3", "E3", "E3", "D3", "D3", "D3",
-   "E3", "E3", "F3", "G3", "G3", "F3", "E3", "D3", "C3", "C3", "D3", "E3", "D3", "D3", "C3", "C3"
+   "E3", "E3", "F3", "G3", "G3", "F3", "E3", "D3", "C3", "C3", "D3", "E3", "D3", "C3", "C3", "C3"
 ];
 const notesBad = ["C2", "D2", "Eb2", "F2", "G2"];
 let iNote = 0;
@@ -388,10 +388,14 @@ function updateState() {
 
    }
 
+   document.body.classList.remove("win");
    if (G.isProblematic)
       canvas.style.filter = "grayscale(0.5)";
-   else
+   else {
+      if (flow(G) == G.maxflow)
+      document.body.classList.add("win");
       canvas.style.filter = "";
+   }
 
    console.log(G.isProblematic)
 

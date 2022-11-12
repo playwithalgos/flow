@@ -8,4 +8,12 @@ margin:0px;
 
 canvas {
     position:absolute;
+    padding: 0;
+    margin: auto;
+    display: block;
+}
+
+
+.win {
+    background-color: rgb(62, 96, 62);
 }
