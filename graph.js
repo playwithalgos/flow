@@ -59,5 +59,10 @@ export class Graph {
                 }
 
             }
+
+        if (style.drawNodeOver)
+            for (const node of this.nodes) {
+                style.drawNodeOver(context, node, this);
+            }
     }
 }

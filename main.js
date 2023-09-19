@@ -234,8 +234,8 @@ function resetFlowToZero(G) {
 let G = new Graph(); //generateGraph
 
 function load() {
-   buttonReset.onclick = () => {resetFlowToZero(G); updateState()}
-   buttonSolution.onclick = () => {maxflow(G);; updateState()}
+   buttonReset.onclick = () => { resetFlowToZero(G); updateState() }
+   buttonSolution.onclick = () => { maxflow(G);; updateState() }
    buttonHelp.onclick = () => alert("Yellow node: the source of cookies. Black node: the target. You have to transport the maximum number of cookies from the source to the target. \n" +
       "Click at the end of an edge: increase the flow in an edge by 1\nClick at the beginning of an edge: decrease the flow in an edge by 1")
 
@@ -271,9 +271,8 @@ function d(a, b) {
    return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-canvas.onmousedown = (evt) => {
-   const p = { x: evt.layerX, y: evt.layerY };
 
+function pointToAction(p) {
    let bestEdge = undefined;
    let bestScore = 10000;
 
@@ -286,20 +285,42 @@ canvas.onmousedown = (evt) => {
    }
 
    if (bestEdge) {
-      bestEdge.clicked = 10;
 
       //beginning of the edge = decrease the flow by 1
       if (d(bestEdge.B, p) < d(p, bestEdge.A)) {
          if (bestEdge.flow < bestEdge.capacity)
-            bestEdge.flow++;
+            return { edge: bestEdge, add: true };
       }
       //more to the end of the edge = increease the flow by 1
       else {
          if (bestEdge.flow > 0)
-            bestEdge.flow--;
+            return { edge: bestEdge, add: false };
       }
-      updateState();
 
+   }
+   return undefined;
+}
+
+canvas.onmousemove = (evt) => {
+   const p = { x: evt.layerX, y: evt.layerY };
+   const action = pointToAction(p);
+   G.action = action;
+   evt.preventDefault();
+}
+
+
+canvas.onmousedown = (evt) => {
+   const p = { x: evt.layerX, y: evt.layerY };
+   const action = pointToAction(p);
+
+   if (action) {
+      const { edge, add } = action;
+      edge.clicked = 10;
+      if (add)
+         edge.flow++;
+      else
+         edge.flow--;
+      updateState();
    }
    evt.preventDefault();
 }
@@ -390,10 +411,10 @@ function updateState() {
 
    document.body.classList.remove("win");
    if (G.isProblematic)
-      canvas.style.filter = "grayscale(0.5)";
+      canvas.style.filter = "grayscale(0.2)";
    else {
       if (flow(G) == G.maxflow)
-      document.body.classList.add("win");
+         document.body.classList.add("win");
       canvas.style.filter = "";
    }
 
